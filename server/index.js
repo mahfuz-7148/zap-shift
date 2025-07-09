@@ -23,6 +23,22 @@ async function run() {
 
         const parcelCollection = client.db('parcelDB').collection('parcels')
 
+        app.get('/parcels', async (req, res) => {
+            try {
+                const userEmail = req.query.email;
+
+                const query = userEmail ? { created_by: userEmail } : {};
+                const options = {
+                    sort: { creation_date: -1 }
+                };
+
+                const parcels = await parcelCollection.find(query, options).toArray();
+                res.send(parcels);
+            } catch (error) {
+                console.error('Error fetching parcels:', error);
+                res.status(500).send({ message: 'Failed to get parcels' });
+            }
+        });
         app.post('/parcels', async (req, res) => {
             try {
                 const newParcel = req.body;
@@ -33,7 +49,18 @@ async function run() {
                 res.status(500).send({ message: 'Failed to create parcel' });
             }
         });
+        app.delete('/parcels/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
 
+                const result = await parcelCollection.deleteOne({ _id: new ObjectId(id) });
+
+                res.send(result);
+            } catch (error) {
+                console.error('Error deleting parcel:', error);
+                res.status(500).send({ message: 'Failed to delete parcel' });
+            }
+        });
 
         // await client.db("admin").command({ ping: 1 });
         // console.log("Pinged your deployment. You successfully connected to MongoDB!");

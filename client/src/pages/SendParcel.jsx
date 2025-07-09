@@ -3,6 +3,7 @@ import {useForm} from 'react-hook-form';
 import useAuth from '../hooks/useAuth.jsx';
 import {useLoaderData} from 'react-router';
 import Swal from 'sweetalert2';
+import useAxiosSecure from '../hooks/useAxiosSecure.jsx';
 
 const generateTrackingID = () => {
     const date = new Date()
@@ -12,6 +13,7 @@ const generateTrackingID = () => {
 }
 
 const SendParcel = () => {
+    const axiosSecure = useAxiosSecure();
     const {register, handleSubmit, watch, formState: {errors}} = useForm()
     const {user} = useAuth()
     const parcelType = watch('type')
@@ -67,11 +69,11 @@ const SendParcel = () => {
         <p class="text-xl font-bold text-green-600">Total Cost: ৳${totalCost}</p>
       </div>
     `,
-            showDenyButton: true,
-            confirmButtonText: "💳 Proceed to Payment",
             denyButtonText: "✏️ Continue Editing",
-            confirmButtonColor: "#16a34a",
+            showDenyButton: true,
             denyButtonColor: "#d3d3d3",
+            confirmButtonText: "💳 Proceed to Payment",
+            confirmButtonColor: "#16a34a",
             customClass: {
                 popup: "rounded-xl shadow-md px-6 py-6",
             },
@@ -86,6 +88,19 @@ const SendParcel = () => {
                     creation_date: new Date().toISOString(),
                     tracking_id: generateTrackingID(),
                 };
+                axiosSecure.post('/parcels', parcelData)
+                    .then(res => {
+                        console.log(res.data);
+                        if (res.data.insertedId) {
+                            Swal.fire({
+                                title: "Redirecting...",
+                                text: "Proceeding to payment gateway.",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false,
+                            });
+                        }
+                    })
 
                 // console.log("Ready for payment:", parcelData);
 
