@@ -10,6 +10,8 @@ import SendParcel from '../pages/SendParcel.jsx';
 import DashboardLayout from '../layouts/DashboardLayout.jsx';
 import MyParcels from '../pages/MyParcels.jsx';
 import Payment from '../pages/Payment.jsx';
+import PaymentHistory from '../pages/PaymentHistory.jsx';
+import TrackParcel from '../pages/TrackParcel.jsx';
 
 
 export const router = createBrowserRouter([
@@ -61,6 +63,14 @@ export const router = createBrowserRouter([
         path: 'payment/:parcelId',
         Component: Payment
       },
+      {
+        path: 'paymentHistory',
+        Component: PaymentHistory
+      },
+      {
+        path: 'track',
+        Component: TrackParcel
+      }
     ]
   }
 
