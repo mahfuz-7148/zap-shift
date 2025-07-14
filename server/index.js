@@ -1,4 +1,6 @@
 require('dotenv').config();
+const admin = require("firebase-admin");
+const serviceAccount = require("./firebase-adminsdk-fbsvc-c2bda2cff0.json");
 const { MongoClient, ServerApiVersion, ObjectId} = require('mongodb');
 const express = require('express');
 const stripe = require('stripe')(process.env.PAYMENT_GATEWAY_KEY);
@@ -7,6 +9,11 @@ const port = process.env.PORT || 3000;
 const cors = require('cors');
 app.use(cors())
 app.use(express.json())
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@lost-found.mmu9lkl.mongodb.net/?retryWrites=true&w=majority&appName=lost-found`;
 
@@ -25,6 +32,7 @@ async function run() {
         const parcelCollection = client.db('parcelDB').collection('parcels')
         const paymentsCollection = client.db('parcelDB').collection('payments')
         const usersCollection = client.db('parcelDB').collection('users');
+        const ridersCollection = client.db('parcelDB').collection('riders');
 
         const verifyFBToken = async (req, res, next) => {
             const authHeader = req.headers.authorization
@@ -38,12 +46,13 @@ async function run() {
             }
 
             try {
-
+                const decoded = await admin.auth().verifyIdToken(token)
+                req.decoded = decoded
+                next()
             }
-            catch (e) {
-                
+            catch (error) {
+                return res.status(403).send({ message: 'forbidden access' })
             }
-            next()
         }
 
         app.post('/users', async (req, res) => {
@@ -61,6 +70,10 @@ async function run() {
         app.get('/parcels', verifyFBToken, async (req, res) => {
             try {
                 const userEmail = req.query.email;
+                // console.log(req.decoded)
+                if (req.decoded.email !== userEmail) {
+                    return res.status(403).send({ message: 'forbidden access' })
+                }
 
                 const query = userEmail ? { created_by: userEmail } : {};
                 const options = {
@@ -159,6 +172,13 @@ async function run() {
                 res.status(500).send({ message: 'Failed to record payment' });
             }
         })
+
+        app.post('/riders', async (req, res) => {
+            const rider = req.body;
+            const result = await ridersCollection.insertOne(rider);
+            res.send(result);
+        })
+
 
         app.post('/create-payment-intent', async (req, res) => {
             const {amountInCents} = req.body
