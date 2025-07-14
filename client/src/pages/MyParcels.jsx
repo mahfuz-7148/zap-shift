@@ -18,7 +18,7 @@ const MyParcels = () => {
     });
 
     const handleView = (id) => {
-        console.log("View parcel", id);
+        // console.log("View parcel", id);
     };
 
     const handlePay = (id) => {
