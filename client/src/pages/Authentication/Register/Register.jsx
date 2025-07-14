@@ -4,6 +4,7 @@ import SocialLogin from '../SocialLogin/SocialLogin';
 import {useForm} from 'react-hook-form';
 import useAuth from '../../../hooks/useAuth.jsx';
 import axios from 'axios';
+import useAxios from '../../../hooks/useAxios.jsx';
 
 const Register = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -11,10 +12,22 @@ const Register = () => {
     const [profilePic, setProfilePic] = useState('');
     const [image, setImage] = useState(null)
     const [url, setUrl] = useState(null)
+    const axiosInstance = useAxios();
     const onSubmit = data => {
         createUser(data.email, data.password)
             .then(async (result) => {
                 console.log(result.user);
+
+                const userInfo = {
+                    email: data.email,
+                    role: 'user',
+                    created_at: new Date().toISOString(),
+                    last_log_in: new Date().toISOString()
+                }
+
+                const userRes = await axiosInstance.post('/users', userInfo);
+                console.log(userRes.data);
+
                 const userProfile = {
                     displayName: data.name,
                     photoURL: profilePic
