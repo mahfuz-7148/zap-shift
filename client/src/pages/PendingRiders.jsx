@@ -5,25 +5,34 @@ import { FaEye, FaCheck, FaTimes } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from '../hooks/useAxiosSecure.jsx';
 
+
 const PendingRiders = () => {
     const [selectedRider, setSelectedRider] = useState(null);
     const axiosSecure = useAxiosSecure();
 
-    const { isPending, data: riders = [], refetch } = useQuery({
-        queryKey: ['pending-riders'],
+    //   tanstack query
+    const {
+        isPending,
+        data: riders = [],
+        refetch,
+    } = useQuery({
+        queryKey: ["pending-riders"],
         queryFn: async () => {
             const res = await axiosSecure.get("/riders/pending");
+            console.log(res.data)
+
             return res.data;
-        }
-    })
+        },
+    });
 
     if (isPending) {
-        return '...loading'
+        return "...loading";
     }
 
-    const handleDecision = async (id, action) => {
+
+    const handleDecision = async (id, action, email) => {
         const confirm = await Swal.fire({
-            title: `${action === "approve" ? "Approve" : "Reject"} Application?`,
+            title: `${action === "approve" ? "active" : "Reject"} Application?`,
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Yes",
@@ -33,8 +42,10 @@ const PendingRiders = () => {
         if (!confirm.isConfirmed) return;
 
         try {
+            const status = action === "approve" ? "active" : "rejected"
             await axiosSecure.patch(`/riders/${id}/status`, {
-                status: action === "approve" ? "active" : "rejected",
+                status,
+                email
             });
 
             refetch();
@@ -48,7 +59,9 @@ const PendingRiders = () => {
 
     return (
         <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Pending Rider Applications</h2>
+            <h2 className="text-2xl font-semibold mb-4">
+                Pending Rider Applications
+            </h2>
 
             <div className="overflow-x-auto">
                 <table className="table table-zebra w-full">
@@ -80,13 +93,13 @@ const PendingRiders = () => {
                                     <FaEye />
                                 </button>
                                 <button
-                                    onClick={() => handleDecision(rider._id, "approve")}
+                                    onClick={() => handleDecision(rider._id, "approve", rider.email)}
                                     className="btn btn-sm btn-success"
                                 >
                                     <FaCheck />
                                 </button>
                                 <button
-                                    onClick={() => handleDecision(rider._id, "reject")}
+                                    onClick={() => handleDecision(rider._id, "reject", rider.email)}
                                     className="btn btn-sm btn-error"
                                 >
                                     <FaTimes />
@@ -104,17 +117,43 @@ const PendingRiders = () => {
                     <div className="modal-box max-w-2xl">
                         <h3 className="font-bold text-xl mb-2">Rider Details</h3>
                         <div className="space-y-2">
-                            <p><strong>Name:</strong> {selectedRider.name}</p>
-                            <p><strong>Email:</strong> {selectedRider.email}</p>
-                            <p><strong>Phone:</strong> {selectedRider.phone}</p>
-                            <p><strong>Age:</strong> {selectedRider.age}</p>
-                            <p><strong>NID:</strong> {selectedRider.nid}</p>
-                            <p><strong>Bike Brand:</strong> {selectedRider.bike_brand}</p>
-                            <p><strong>Bike Registration:</strong> {selectedRider.bike_registration}</p>
-                            <p><strong>Region:</strong> {selectedRider.region}</p>
-                            <p><strong>District:</strong> {selectedRider.district}</p>
-                            <p><strong>Applied At:</strong> {new Date(selectedRider.created_at).toLocaleString()}</p>
-                            {selectedRider.note && <p><strong>Note:</strong> {selectedRider.note}</p>}
+                            <p>
+                                <strong>Name:</strong> {selectedRider.name}
+                            </p>
+                            <p>
+                                <strong>Email:</strong> {selectedRider.email}
+                            </p>
+                            <p>
+                                <strong>Phone:</strong> {selectedRider.phone}
+                            </p>
+                            <p>
+                                <strong>Age:</strong> {selectedRider.age}
+                            </p>
+                            <p>
+                                <strong>NID:</strong> {selectedRider.nid}
+                            </p>
+                            <p>
+                                <strong>Bike Brand:</strong> {selectedRider.bike_brand}
+                            </p>
+                            <p>
+                                <strong>Bike Registration:</strong>{" "}
+                                {selectedRider.bike_registration}
+                            </p>
+                            <p>
+                                <strong>Region:</strong> {selectedRider.region}
+                            </p>
+                            <p>
+                                <strong>District:</strong> {selectedRider.district}
+                            </p>
+                            <p>
+                                <strong>Applied At:</strong>{" "}
+                                {new Date(selectedRider.created_at).toLocaleString()}
+                            </p>
+                            {selectedRider.note && (
+                                <p>
+                                    <strong>Note:</strong> {selectedRider.note}
+                                </p>
+                            )}
                         </div>
 
                         <div className="modal-action mt-4">
