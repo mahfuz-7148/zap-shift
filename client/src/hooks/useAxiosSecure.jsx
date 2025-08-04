@@ -2,6 +2,7 @@ import axios from 'axios';
 import useAuth from './useAuth.jsx';
 import {useNavigate} from 'react-router';
 
+
 const axiosSecure = axios.create({
     baseURL: `http://localhost:3000`
 });
@@ -16,6 +17,7 @@ const useAxiosSecure = () => {
     }, error => {
         return Promise.reject(error)
     })
+
 
     axiosSecure.interceptors.response.use(res => {
         return res;

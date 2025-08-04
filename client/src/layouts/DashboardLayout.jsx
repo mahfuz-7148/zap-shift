@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router';
 import ProFastLogo from '../pages/shared/ProFastLogo/ProFastLogo';
-import {FaHome, FaBoxOpen, FaMoneyCheckAlt, FaUserEdit, FaSearchLocation, FaUserCheck, FaUserClock, FaUserShield} from 'react-icons/fa';
+import {FaHome, FaBoxOpen, FaMoneyCheckAlt, FaUserEdit, FaSearchLocation, FaUserCheck, FaUserClock, FaUserShield, FaMotorcycle} from 'react-icons/fa';
 import useUserRole from '../hooks/useUserRole.jsx';
 
 const DashboardLayout = () => {
@@ -79,6 +79,12 @@ const DashboardLayout = () => {
                     {
                         !roleLoading && role === 'admin' &&
                         <>
+                            <li>
+                                <NavLink to="/dashboard/assign-rider">
+                                    <FaMotorcycle className="inline-block mr-2" />
+                                    Assign Rider
+                                </NavLink>
+                            </li>
                             <li>
                                 <NavLink to="/dashboard/active-riders">
                                     <FaUserCheck className="inline-block mr-2" />
