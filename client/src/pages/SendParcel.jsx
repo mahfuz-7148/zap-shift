@@ -216,7 +216,7 @@ const SendParcel = () => {
                                 }
 
                             </select>
-                            <select  className="select select-bordered w-full">
+                            <select {...register("receiver_center", { required: true })} className="select select-bordered w-full">
                                 <option value="">Select Service Center</option>
                                 {
                                     getDistrictsByRegion(receiverRegion).map(district =>

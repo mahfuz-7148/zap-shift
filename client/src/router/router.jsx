@@ -90,7 +90,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'assign-rider',
-        element: <AdminRoute><AssignRider></AssignRider></AdminRoute>
+        element: <AssignRider></AssignRider>
       },
       {
         path: 'pending-riders',

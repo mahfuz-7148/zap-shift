@@ -158,7 +158,7 @@ async function run() {
                     sort: { creation_date: -1 }
                 };
 
-                console.log('parcel query', req.query, query)
+                // console.log('parcel query', req.query, query)
 
                 const parcels = await parcelCollection.find(query, options).toArray();
                 res.send(parcels);
@@ -180,6 +180,8 @@ async function run() {
             }
         });
 
+
+
         app.get('/parcels/:id', async (req, res) => {
             const id = req.params.id;
             const parcel = await parcelCollection.findOne({
@@ -187,7 +189,67 @@ async function run() {
             })
             res.send(parcel)
         })
-
+        app.patch('/parcels/:id/assign', async (req, res) => {
+            const parcelId = req.params.id
+            const {riderId, riderName} = req.body
+            // console.log(riderId, riderName)
+            const filter =  { _id: new ObjectId(parcelId) }
+            const updateDoc = {
+                $set: {
+                    delivery_status: "in_transit",
+                    assigned_rider_id: riderId,
+                    assigned_rider_name: riderName,
+                }
+            }
+            const filter1 =  { _id: new ObjectId(riderId) }
+            const updateDoc1 = {
+                $set: {
+                    work_status: "in_delivery",
+                }
+            }
+            try {
+                await  parcelCollection.updateOne(filter, updateDoc)
+                await ridersCollection.updateOne(filter1, updateDoc1)
+                res.send({message: 'Rider assigned'})
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to assign rider" });
+            }
+        })
+        // app.patch("/parcels/:id/assign", async (req, res) => {
+        //     const parcelId = req.params.id;
+        //     const { riderId, riderName } = req.body;
+        //
+        //     try {
+        //         // Update parcel
+        //         await parcelCollection.updateOne(
+        //             { _id: new ObjectId(parcelId) },
+        //             {
+        //                 $set: {
+        //                     delivery_status: "in_transit",
+        //                     assigned_rider_id: riderId,
+        //                     assigned_rider_name: riderName,
+        //                 },
+        //             }
+        //         );
+        //
+        //         // Update rider
+        //         await ridersCollection.updateOne(
+        //             { _id: new ObjectId(riderId) },
+        //             {
+        //                 $set: {
+        //                     work_status: "in_delivery",
+        //                 },
+        //             }
+        //         );
+        //
+        //         res.send({ message: "Rider assigned" });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to assign rider" });
+        //     }
+        // });
         app.delete('/parcels/:id', async (req, res) => {
             try {
                 const id = req.params.id;
@@ -278,6 +340,17 @@ async function run() {
             const result = await ridersCollection.find(filter).toArray();
             res.send(result);
         });
+
+        app.get('/riders/available', async (req, res) => {
+            const {district} = req.query
+            try {
+                const riders = await ridersCollection.find({district}).toArray()
+                res.send(riders)
+            }
+            catch (error) {
+                res.status(500).send({ message: "Failed to load riders" });
+            }
+        })
 
         app.patch("/riders/:id/status", async (req, res) => {
             const { id } = req.params;
