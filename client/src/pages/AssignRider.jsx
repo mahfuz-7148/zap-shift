@@ -33,7 +33,7 @@ export const AssignRider = () => {
                 riderId: rider._id,
                 riderName: rider.name
             })
-            console.log(res.data)
+            // console.log(res.data)
             return res.data
         },
         onSuccess: () => {
