@@ -18,10 +18,9 @@ import ActiveRiders from '../pages/ActiveRiders.jsx';
 import MakeAdmin from '../pages/MakeAdmin.jsx';
 import Forbidden from '../pages/Forbidden.jsx';
 import AdminRoute from '../routes/AdminRoute.jsx';
+import RiderRoute from '../routes/RiderRoute.jsx';
 import {AssignRider} from '../pages/AssignRider.jsx';
 import {PendingDeliveries} from '../pages/PendingDeliveries.jsx';
-import RiderRoute from '../routes/RiderRoute.jsx';
-
 
 
 export const router = createBrowserRouter([

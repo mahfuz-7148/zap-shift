@@ -228,7 +228,7 @@ async function run() {
                 const filter = {
                     assigned_rider_email: email,
                     delivery_status: {
-                        $in: ['rider_assigned']
+                        $in: ['rider_assigned', 'in_transit']
                     }
                     }
                     const options = {
