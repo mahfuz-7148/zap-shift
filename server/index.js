@@ -191,13 +191,14 @@ async function run() {
         })
         app.patch('/parcels/:id/assign', async (req, res) => {
             const parcelId = req.params.id
-            const {riderId, riderName} = req.body
+            const {riderId, riderName, riderEmail} = req.body
             // console.log(riderId, riderName)
             const filter =  { _id: new ObjectId(parcelId) }
             const updateDoc = {
                 $set: {
-                    delivery_status: "in_transit",
+                    delivery_status: "rider_assigned",
                     assigned_rider_id: riderId,
+                    assigned_rider_email: riderEmail,
                     assigned_rider_name: riderName,
                 }
             }
@@ -215,6 +216,58 @@ async function run() {
             catch (err) {
                 console.error(err);
                 res.status(500).send({ message: "Failed to assign rider" });
+            }
+        })
+
+        app.get('/rider/parcels', async (req, res) => {
+            try {
+                const email = req.query.email
+                if (!email) {
+                    return res.status(400).send({ message: 'Rider email is required' });
+                }
+                const filter = {
+                    assigned_rider_email: email,
+                    delivery_status: {
+                        $in: ['rider_assigned']
+                    }
+                    }
+                    const options = {
+                        sort: {
+                            creation_date: -1
+                        }
+                }
+                const parcels = await parcelCollection.find(filter,options).toArray()
+                res.send(parcels)
+            }
+            catch (error) {
+                console.error('Error fetching rider tasks:', error);
+                res.status(500).send({ message: 'Failed to get rider tasks' });
+            }
+        })
+
+        app.patch('/parcels/:id/status', async (req, res) => {
+            const parcelId = req.params.id
+            const {status} = req.body
+            const updateDoc = {
+                delivery_status: status
+            }
+            if (status === 'rider_assigned') {
+                updateDoc.picked_at = new Date().toISOString()
+            }
+            else if (status === 'delivered') {
+                updateDoc.delivered_at = new Date().toISOString()
+            }
+            try {
+                const result = await parcelCollection.updateOne({
+                    _id: new ObjectId(parcelId)
+                },
+                {
+                    $set: updateDoc
+                }
+            )
+                res.send(result)
+            }catch (error) {
+                res.status(500).send({ message: "Failed to update status" });
             }
         })
 
@@ -319,6 +372,7 @@ async function run() {
                 res.status(500).send({ message: "Failed to load riders" });
             }
         })
+
 
         app.patch("/riders/:id/status", async (req, res) => {
             const { id } = req.params;
