@@ -245,13 +245,39 @@ async function run() {
             }
         })
 
+        app.get('/rider/completed-parcels', async (req, res) => {
+           try {
+               const email = req.query.email
+               if (!email) {
+                   return res.status(400).send({ message: 'Rider email is required' });
+               }
+               const filter = {
+                   assigned_rider_email: email,
+                   delivery_status: {
+                       $in: ['delivered']
+                   }
+               }
+               const options = {
+                   sort: {
+                       creation_date: -1
+                   }
+               }
+               const completedParcels = await parcelCollection.find(filter, options).toArray()
+               res.send(completedParcels)
+           }
+           catch (error) {
+               console.error('Error loading completed parcels:', error);
+               res.status(500).send({ message: 'Failed to load completed deliveries' });
+           }
+        })
+
         app.patch('/parcels/:id/status', async (req, res) => {
             const parcelId = req.params.id
             const {status} = req.body
             const updateDoc = {
                 delivery_status: status
             }
-            if (status === 'rider_assigned') {
+            if (status === 'in_transit') {
                 updateDoc.picked_at = new Date().toISOString()
             }
             else if (status === 'delivered') {
@@ -269,6 +295,21 @@ async function run() {
             }catch (error) {
                 res.status(500).send({ message: "Failed to update status" });
             }
+        })
+
+        app.patch('parcels/:id/cashout', async (req, res) => {
+            const id = req.params.id
+            const filter = {
+                _id: new ObjectId(id)
+            }
+            const updateDoc = {
+                $set: {
+                    cashout_status: 'cashed_out',
+                    cashed_out_at: new Date()
+                }
+            }
+            const result = await parcelCollection.updateOne(filter, updateDoc)
+            res.send(result)
         })
 
         app.delete('/parcels/:id', async (req, res) => {
