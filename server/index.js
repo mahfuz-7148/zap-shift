@@ -297,20 +297,20 @@ async function run() {
             }
         })
 
-        app.patch('parcels/:id/cashout', async (req, res) => {
-            const id = req.params.id
-            const filter = {
-                _id: new ObjectId(id)
-            }
-            const updateDoc = {
-                $set: {
-                    cashout_status: 'cashed_out',
-                    cashed_out_at: new Date()
-                }
-            }
-            const result = await parcelCollection.updateOne(filter, updateDoc)
-            res.send(result)
-        })
+      app.patch('/parcels/:id/cashout',  async (req, res) => {
+          const id = req.params.id
+          const filter = {
+              _id: new ObjectId(id)
+          }
+          const updateDoc = {
+              $set: {
+                  cashout_status: 'cashed_out',
+                  cashout_at: new Date()
+              }
+          }
+          const result = await parcelCollection.updateOne(filter, updateDoc)
+          res.send(result)
+      })
 
         app.delete('/parcels/:id', async (req, res) => {
             try {

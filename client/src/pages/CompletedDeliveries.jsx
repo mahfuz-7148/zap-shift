@@ -1,11 +1,13 @@
 import React from 'react'
 import useAxiosSecure from '../hooks/useAxiosSecure.jsx';
 import useAuth from '../hooks/useAuth.jsx';
-import {useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import Swal from 'sweetalert2';
 
 export const CompletedDeliveries = () => {
     const axiosSecure = useAxiosSecure();
     const { user } = useAuth();
+    const queryClient = useQueryClient()
 
     const {data: parcels = [], isLoading} = useQuery({
         queryKey: ['completedDeliveries', user.email],
@@ -28,6 +30,35 @@ export const CompletedDeliveries = () => {
         else {
             return cost * 0.3
         }
+    }
+
+    const {mutateAsync: cashout} = useMutation({
+        mutationFn: async (id) => {
+            const res = await axiosSecure.patch(`/parcels/${id}/cashout`)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['completedDeliveries'])
+        }
+    })
+
+    const handleCashout = (parcelId) => {
+        Swal.fire({
+            title: "Confirm Cashout",
+            text: "You are about to cash out this delivery.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Cash Out",
+            cancelButtonText: "Cancel",
+        }).then(result => {
+         if (result.isConfirmed) {
+             cashout(parcelId).then(() => {
+                 Swal.fire("Success", "Cashout completed.", "success");
+             }).catch(() => {
+                 Swal.fire("Error", "Failed to cash out. Try again.", "error");
+             });
+         }
+        })
     }
     return (
         <div className="p-6">
@@ -71,7 +102,7 @@ export const CompletedDeliveries = () => {
                                     ) : (
                                         <button
                                             className="btn btn-sm btn-warning"
-
+                                            onClick={() => handleCashout(parcel._id)}
                                         >
                                             Cashout
                                         </button>
