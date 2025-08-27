@@ -33,6 +33,7 @@ async function run() {
         const paymentsCollection = client.db('parcelDB').collection('payments')
         const usersCollection = client.db('parcelDB').collection('users');
         const ridersCollection = client.db('parcelDB').collection('riders');
+        const trackingsCollection = client.db('parcelDB').collection('trackings')
 
         const verifyFBToken = async (req, res, next) => {
             const authHeader = req.headers.authorization
@@ -324,6 +325,25 @@ async function run() {
                 res.status(500).send({ message: 'Failed to delete parcel' });
             }
         });
+
+        app.get('/trackings/:trackingId', async (req, res) => {
+            const trackingId = req.params.trackingId
+            const filter = {
+                tracking_id: trackingId
+            }
+            const updates = await trackingsCollection.find(filter).sort({timestamp: 1}).toArray()
+            res.json(updates)
+        })
+
+        app.post('/trackings', async (req, res) => {
+            const update = req.body
+            update.timestamp = new Date()
+            if (!update.tracking_id || !update.status) {
+                return res.status(400).json({message: 'tracking id and status are required'})
+            }
+            const result = await trackingsCollection.insertOne(update)
+            res.status(201).json(result)
+        })
 
         app.get('/payments', async (req, res) => {
             try {
