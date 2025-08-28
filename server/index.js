@@ -66,6 +66,16 @@ async function run() {
             next();
         }
 
+        const verifyRider = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            if (!user || user.role !== 'rider') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+        }
+
         app.post('/users', async (req, res) => {
             const email = req.body.email;
             const userExists = await usersCollection.findOne({ email })
@@ -240,7 +250,7 @@ async function run() {
             }
         })
 
-        app.get('/rider/parcels', async (req, res) => {
+        app.get('/rider/parcels', verifyFBToken, verifyRider, async (req, res) => {
             try {
                 const email = req.query.email
                 if (!email) {
@@ -266,7 +276,7 @@ async function run() {
             }
         })
 
-        app.get('/rider/completed-parcels', async (req, res) => {
+        app.get('/rider/completed-parcels', verifyFBToken, verifyRider, async (req, res) => {
            try {
                const email = req.query.email
                if (!email) {
@@ -363,7 +373,7 @@ async function run() {
             res.status(201).json(result)
         })
 
-        app.get('/payments', async (req, res) => {
+        app.get('/payments', verifyFBToken, async (req, res) => {
             try {
                 const userEmail = req.query.email;
 
